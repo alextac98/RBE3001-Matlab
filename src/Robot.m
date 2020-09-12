@@ -1,26 +1,52 @@
 
 classdef Robot
-    properties
+    properties        
         %hidDevice;
         %hidService;
         myHIDSimplePacketComs
-        pol 
+        pol
+        
+        % Package Server IDs
+        gripper_id = 1962;
+        setpoint_id = 1848;
+        getpos_id = 1910;
+        getvel_id = 1822;
+        
+        % Robot Position Status
+        gripper_pos = true;
+        
     end
     methods
-	%The is a shutdown function to clear the HID hardware connection
+    %% General Commands
+        % Create a packet processor for an HID device with USB PID 0x007
+        function self = Robot(dev)
+            self.myHIDSimplePacketComs=dev; 
+            self.pol = java.lang.Boolean(false);
+        end
+        % The is a shutdown function to clear the HID hardware connection
         function  shutdown(packet)
 	    %Close the device
             packet.myHIDSimplePacketComs.disconnect();
         end
-        % Create a packet processor for an HID device with USB PID 0x007
-        function packet = Robot(dev)
-             packet.myHIDSimplePacketComs=dev; 
-            packet.pol = java.lang.Boolean(false);
+        
+    %% Movement Commands
+        % Command Gripper
+        function cmd_gripper(self, open)
+            if open
+                self.write(self.gripper_id, 0);
+                self.gripper_pos = true;
+            else
+                self.write(self.gripper_id, 180);
+                self.gripper_pos = false;
+            end
+           self.read(self.gripper_id);
         end
-        %Perform a command cycle. This function will take in a command ID
-        %and a list of 32 bit floating point numbers and pass them over the
-        %HID interface to the device, it will take the response and parse
-        %them back into a list of 32 bit floating point numbers as well
+        
+    %% Basic Comms Functions
+        % Perform a command cycle. This function will take in a command ID
+        % and a list of 32 bit floating point numbers and pass them over the
+        % HID interface to the device, it will take the response and parse
+        % them back into a list of 32 bit floating point numbers as well
         function com = command(packet, idOfCommand, values)
                 com= zeros(15, 1, 'single');
                 try

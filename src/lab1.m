@@ -29,7 +29,7 @@ import edu.wpi.SimplePacketComs.device.*;
 import edu.wpi.SimplePacketComs.phy.*;
 import java.util.*;
 import org.hid4java.*;
-version -java
+version -java;
 myHIDSimplePacketComs=HIDfactory.get();
 myHIDSimplePacketComs.setPid(pid);
 myHIDSimplePacketComs.setVid(vid);
@@ -58,15 +58,15 @@ try
       packet = zeros(15, 1, 'single');
       packet(1) = 1000;%one second time
       packet(2) = 0;%linear interpolation
-      packet(3) = k;
-      packet(4) = k;% Second link to 0
-      packet(5) = k;% Third link to 0
+      packet(3) = 0;
+      packet(4) = 0;% Second link to 0
+      packet(5) = 0;% Third link to 0
 
       % Send packet to the server and get the response      
       %pp.write sends a 15 float packet to the micro controller
        pp.write(SERV_ID, packet); 
        %pp.read reads a returned 15 float backet from the micro controller.
-       returnPacket = pp.read(SERVER_ID_READ);
+       returnPacket = pp.read(pp.getpos_id);
       toc
 
       if DEBUG
