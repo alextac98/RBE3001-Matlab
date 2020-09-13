@@ -2,7 +2,7 @@
 % RBE 3001 Controller in Matlab
 % Developed by Alex Tacescu (alextac.com)
 %%
-
+clc;
 clear;
 clear java;
 clear classes;
@@ -33,3 +33,17 @@ myHIDSimplePacketComs.connect();
 
 robot = Robot(myHIDSimplePacketComs);
 
+%% Main Control
+try
+    traj = [0, 0, 0;
+            40, 40, 40;
+            20, 10, 0;
+            0, 0, 0];
+    robot.cmd_joint_traj(traj);
+catch exception
+    getReport(exception)
+    disp('Exited on error, clean shutdown');
+end
+
+%% Shutdown Procedure
+robot.shutdown()

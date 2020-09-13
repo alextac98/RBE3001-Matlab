@@ -1,6 +1,9 @@
 
 classdef Robot
-    properties        
+    properties
+        % Flags
+        DEBUG = false;
+        
         %hidDevice;
         %hidService;
         myHIDSimplePacketComs
@@ -24,9 +27,9 @@ classdef Robot
             self.pol = java.lang.Boolean(false);
         end
         % The is a shutdown function to clear the HID hardware connection
-        function  shutdown(packet)
+        function  shutdown(self)
 	    %Close the device
-            packet.myHIDSimplePacketComs.disconnect();
+            self.myHIDSimplePacketComs.disconnect();
         end
         
     %% Movement Commands
@@ -41,13 +44,39 @@ classdef Robot
             end
            self.read(self.gripper_id);
         end
+        % Command Joint-Space Trajectory
+        function cmd_joint_traj(self, traj)
+            % traj variable should be a matrix, where each row is a
+            % different position in joint space
+            packet = zeros(15, 1, 'single');
+            for row = traj.'
+                packet(1) = 100;
+                packet(2) = 0;
+                packet(3) = row(1); % Joint 1 Position
+                packet(4) = row(2); % Joint 2 Position
+                packet(5) = row(3); % Joint 3 Position
+                
+                self.write(self.setpoint_id, packet);
+                
+                returnPacket = self.read(self.getpos_id);
+                
+                if self.DEBUG
+                    disp('Sent Packet:');
+                    disp(packet);
+                    disp('Received Packet:');
+                    disp(returnPacket);
+                end
+                
+                pause(0.5);
+            end
+        end
         
     %% Basic Comms Functions
         % Perform a command cycle. This function will take in a command ID
         % and a list of 32 bit floating point numbers and pass them over the
         % HID interface to the device, it will take the response and parse
         % them back into a list of 32 bit floating point numbers as well
-        function com = command(packet, idOfCommand, values)
+        function com = command(self, idOfCommand, values)
                 com= zeros(15, 1, 'single');
                 try
                     ds = javaArray('java.lang.Double',length(values));
@@ -59,8 +88,8 @@ classdef Robot
                     %class(intid);
                     %class(idOfCommand);
                     %class(ds);
-                    packet.myHIDSimplePacketComs.writeFloats(intid,  ds);
-                    ret = 	packet.myHIDSimplePacketComs.readFloats(intid) ;
+                    self.myHIDSimplePacketComs.writeFloats(intid,  ds);
+                    ret = 	self.myHIDSimplePacketComs.readFloats(intid) ;
                     for i=1:length(com)
                        com(i)= ret(i).floatValue();
                     end
@@ -70,7 +99,7 @@ classdef Robot
                     disp('Command error, reading too fast');
                 end
         end
-        function com = read(packet, idOfCommand)
+        function com = read(self, idOfCommand)
                 com= zeros(15, 1, 'single');
                 try
 
@@ -79,7 +108,7 @@ classdef Robot
                     %class(intid);
                     %class(idOfCommand);
                     %class(ds);
-                    ret = 	packet.myHIDSimplePacketComs.readFloats(intid) ;
+                    ret = 	self.myHIDSimplePacketComs.readFloats(intid) ;
                     for i=1:length(com)
                        com(i)= ret(i).floatValue();
                     end
@@ -89,7 +118,7 @@ classdef Robot
                     disp('Command error, reading too fast');
                 end
         end
-        function  write(packet, idOfCommand, values)
+        function  write(self, idOfCommand, values)
                 try
                     ds = javaArray('java.lang.Double',length(values));
                     for i=1:length(values)
@@ -100,7 +129,7 @@ classdef Robot
                     %class(intid);
                     %class(idOfCommand);
                     %class(ds);
-                    packet.myHIDSimplePacketComs.writeFloats(intid,  ds,packet.pol);
+                    self.myHIDSimplePacketComs.writeFloats(intid,  ds,self.pol);
 
                 catch exception
                     getReport(exception)
