@@ -38,11 +38,11 @@ robot.STICKMODEL = STICKMODEL;
 
 %% Main Control
 try
-    traj = [0, 0, -90;
+    traj = [0, 0, - 90;
             40, 40, 40;
-            20, 10, 0;
-            0, 0, 0];
-    %robot.cmd_joint_traj(traj);
+            0, 10, 0];
+            %0, 0, 0];
+    robot.cmd_joint_traj(traj);
         
     pause(1);
     

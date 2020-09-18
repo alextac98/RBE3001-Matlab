@@ -138,7 +138,7 @@ classdef Robot
         function draw_stick_plot(self)
             tic;
             pos = self.get_pos();
-            q = pos(:, 1);
+            q = deg2rad(pos(:, 1));
             
             % Generate DH Table with joint angles
             dh = self.dh_table;
