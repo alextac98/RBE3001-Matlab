@@ -6,58 +6,59 @@
 % takes in DH Parameter matrix of any length
 
 function armPlot(dh)
-clf
-% Lenghts of linkages of arm, measurements in mm
-linkage1 = 135;
-linkage2 = 175;
-linkage3 = 169.28;
+    clf
+    % TODO: Make this work for any length
+    
+    % Calculate dh transformation matricies
+    t0_1 = tdh(dh(1, 1), dh(1, 2), dh(1, 3), dh(1, 4));
+    t1_2 = tdh(dh(2, 1), dh(2, 2), dh(2, 3), dh(2, 4));
+    t2_3 = tdh(dh(3, 1), dh(3, 2), dh(3, 3), dh(3, 4));
+    
+    % Caclulate each frame
+    f0 = zeros(4, 4);
+    f1 = t0_1;
+    f2 = f1 * t1_2;
+    f3 = f2 * t2_3;
 
-waistAngle = -q(1);
-armAngle = -q(2);
-wristAngle = -q(3);
-
-%we are using frames to reate the live plot of the arm as it seems to work,
-%plot3 was upset
-frame1 = tdh(waistAngle, linkage1, -90, 0);
-frame2 = tdh(waistAngle, linkage1, -90, 0) * tdh(armAngle, 0, 0, linkage2);
-frame3 = tdh(waistAngle, linkage1, -90, 0) * tdh(armAngle, 0, 0, linkage2) * tdh(wristAngle + 90, 0, 0, linkage3);
-
-waistCoordinates = [frame1(1,4), frame1(2,4), frame1(3,4)];
-armCoordinates = [frame2(1,4), frame2(2,4), frame2(3,4)];
-wristCoordinates = [frame3(1,4), frame3(2,4), frame3(3,4)];
-
-x1 = [0, waistCoordinates(1)];
-y1 = [0, waistCoordinates(2)];
-z1 = [0, waistCoordinates(3)];
-
-x2 = [waistCoordinates(1), armCoordinates(1)];
-y2 = [waistCoordinates(2), armCoordinates(2)];
-z2 = [waistCoordinates(3), armCoordinates(3)];
-
-x3 = [armCoordinates(1), wristCoordinates(1)];
-y3 = [armCoordinates(2), wristCoordinates(2)];
-z3 = [armCoordinates(3), wristCoordinates(3)];
-
-plot3(0, 0, 0, 'o')
-hold on
-
-
-xlim([-10 350]);
-ylim([-330 330]);
-zlim([-50 300]);
-
-line([0 x1], [0 -y1], [0 z1], 'Color', 'm','LineWidth', 2);
-line([x1 x2], [-y1 -y2], [z1 z2], 'Color', 'm','LineWidth', 2);
-line([x2 x3], [-y2 -y3], [z2 z3], 'Color', 'm','LineWidth', 2);
-
-plot3(x1, -y1, z1, 'kp', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 10)
-plot3(x2, -y2, z2, 'kp', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 10)
-plot3(x3, -y3, z3, 'kp', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 10)
-
-grid on;
-box on;
-ylabel('Y Axis (mm)');
-xlabel('X Axis (mm)');
-zlabel('Z Axis (mm)');
-title('Stick Arm');
+    % Get poses in a nice format
+    poses = zeros(4, 3);
+    poses(1, :) = f0(1, 1:3);
+    poses(2, :) = f1(1, 1:3);
+    poses(3, :) = f2(1, 1:3);
+    poses(4, :) = f3(1, 1:3);
+    
+    % Draw figure
+    plot3(0, 0, 0, 'o')
+    hold on
+    
+    xlim([-10 350]);
+    ylim([-330 330]);
+    zlim([-50 300]);
+    
+    
+    
+    link_num = size(poses, 2);
+    % Draw links
+    for i = 2:link_num
+        line([poses(i-1, 1), poses(i, 1)], ...
+             [poses(i-1, 2), poses(i, 2)], ...
+             [poses(i-1, 2), poses(i, 2)], ...
+             'Color', 'm', 'LineWidth', 2)
+    end
+    % Draw joints
+    %plot3(poses(1, 1), poses(1, 2), poses(1, 3), 'kp', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 10);
+    %plot3(poses(2, 1), poses(2, 2), poses(2, 3), 'kp', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 10);
+    %plot3(poses(3, 1), poses(3, 2), poses(3, 3), 'kp', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 10);
+    %plot3(poses(4, 1), poses(4, 2), poses(4, 3), 'kp', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 10);
+    for i = 1:link_num
+        plot3(poses(i, 1), poses(i, 2), poses(i, 3),...
+              'kp', 'MarkerFaceColor', [0 0 0], 'MarkerSize', 10)
+    end
+    
+    grid on;
+    box on;
+    ylabel('Y Axis (mm)');
+    xlabel('X Axis (mm)');
+    zlabel('Z Axis (mm)');
+    title('Stick Arm');
 end

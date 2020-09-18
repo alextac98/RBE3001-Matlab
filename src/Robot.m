@@ -1,8 +1,12 @@
-
+%%
+% RBE 3001 Arm Class in Matlab
+% Developed by Alex Tacescu (https://alextac.com)
+%%
 classdef Robot
     properties
         % Flags
         DEBUG = false;
+        STICKMODEL = false;
         
         %hidDevice;
         %hidService;
@@ -16,7 +20,14 @@ classdef Robot
         getvel_id = 1822;
         
         % Robot Position Status
-        gripper_pos = true;
+        gripper_pos
+        
+        % Robot DH Parameters at home position
+        dh_table = [
+        %   theta    d     a   alpha
+                0,  95,    0,  -pi/2;
+            -pi/2,   0,  100,      0;
+             pi/2,   0,  100,      0]
         
     end
     methods
@@ -25,6 +36,10 @@ classdef Robot
         function self = Robot(dev)
             self.myHIDSimplePacketComs=dev; 
             self.pol = java.lang.Boolean(false);
+            
+            self.cmd_gripper(false);
+            self.gripper_pos = false;
+            
         end
         % The is a shutdown function to clear the HID hardware connection
         function  shutdown(self)
@@ -35,14 +50,22 @@ classdef Robot
     %% Movement Commands
         % Command Gripper
         function cmd_gripper(self, open)
+            packet = javaArray('java.lang.Byte', 1);
             if open
-                self.write(self.gripper_id, 0);
+                packet(1) = java.lang.Byte(180);
                 self.gripper_pos = true;
             else
-                self.write(self.gripper_id, 180);
+                packet(1) = java.lang.Byte(0);
                 self.gripper_pos = false;
             end
-           self.read(self.gripper_id);
+            try
+                % Default packet size for HID
+                intid = java.lang.Integer(self.gripper_id);
+                self.myHIDSimplePacketComs.writeBytes(intid, packet, self.pol);
+            catch exception
+                getReport(exception)
+                disp('Command error, reading too fast');
+            end
         end
         % Command Joint-Space Trajectory
         function cmd_joint_traj(self, traj)
@@ -50,7 +73,7 @@ classdef Robot
             % different position in joint space
             packet = zeros(15, 1, 'single');
             for row = traj.'
-                packet(1) = 100;
+                packet(1) = 1000;
                 packet(2) = 0;
                 packet(3) = row(1); % Joint 1 Position
                 packet(4) = row(2); % Joint 2 Position
@@ -58,17 +81,73 @@ classdef Robot
                 
                 self.write(self.setpoint_id, packet);
                 
-                returnPacket = self.read(self.getpos_id);
+                if self.STICKMODEL
+                    self.live_stick_plot(packet(1)/1000);
+                else
+                    pause(packet(1)/1000);
+                end
                 
                 if self.DEBUG
                     disp('Sent Packet:');
                     disp(packet);
-                    disp('Received Packet:');
-                    disp(returnPacket);
                 end
-                
-                pause(0.5);
             end
+        end
+        
+    %% Read Values Commands
+        % Read current joint positions + position setpoints
+        function pos = get_pos(self)
+            % Output matrix has two columns:
+                % 1st column: current position
+                % 2nd column: current position setpoint
+                
+            returnPacket = self.read(self.getpos_id);
+            
+            pos = zeros(3, 2);
+            pos(1, 1) = returnPacket(2); % Motor 1 Position
+            pos(1, 2) = returnPacket(1); % Motor 1 Setpoint Position
+            pos(2, 1) = returnPacket(4); % Motor 2 Position
+            pos(2, 2) = returnPacket(3); % Motor 2 Setpoint Position
+            pos(3, 1) = returnPacket(6); % Motor 3 Position
+            pos(3, 2) = returnPacket(5); % Motor 3 Setpoint Position
+            
+            if self.DEBUG
+                disp(pos);
+            end
+        end
+        
+        % Read current joint velocity + velocity setpoint
+        function vel = get_vel(self)
+            returnPacket = set.read(self.getvel_id);
+            
+            vel = returnPacket; % Not fully implemented
+        end
+     
+    %% Graphing Functions
+        % Live Stick Plot Function
+        function live_stick_plot(self, time)
+            t_inc = 0.5; % in seconds
+            for t = 0:t_inc:time
+                self.draw_stick_plot();
+                while toc < t
+                    % Wait until next timestamp is reached
+                end
+            end
+        end
+        % Draw Stick Plot Function
+        function draw_stick_plot(self)
+            tic;
+            pos = self.get_pos();
+            q = pos(:, 1);
+            
+            % Generate DH Table with joint angles
+            dh = self.dh_table;
+            dh(1, 1) = dh(1, 1) + q(1); % Joint 1
+            dh(2, 1) = dh(2, 1) + q(2); % Joint 2
+            dh(3, 1) = dh(3, 1) + q(3); % Joint 3
+            
+            armPlot(dh);
+            toc
         end
         
     %% Basic Comms Functions
