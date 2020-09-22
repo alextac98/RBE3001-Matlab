@@ -122,6 +122,59 @@ classdef Robot
             
             vel = returnPacket; % Not fully implemented
         end
+        
+    %% Calculation Functions
+        % Calculate forward kinematics, inputs joint angles, outputs
+        % position
+        function t0_3 = fwkin(self, q)
+            dh = self.dh_table;
+            
+            q1 = deg2rad(q(1));
+            q2 = deg2rad(q(2));
+            q3 = deg2rad(q(3));
+            
+            dh(1, 1) = dh(1, 1) + q1; % Joint 1
+            dh(2, 1) = dh(2, 1) + q2; % Joint 2
+            dh(3, 1) = dh(3, 1) + q3; % Joint 3
+            
+            t0_1 = tdh(dh(1, 1), dh(1, 2), dh(1, 3), dh(1, 4));
+            t1_2 = tdh(dh(2, 1), dh(2, 2), dh(2, 3), dh(2, 4));
+            t2_3 = tdh(dh(3, 1), dh(3, 2), dh(3, 3), dh(3, 4));
+            
+            t0_3 = t0_1 * t1_2 * t2_3;
+    
+        end
+        
+        % Calculate inverse kinematics, inputs desired pos, outputs joint
+        % angles
+        function q = ikin(self, p)
+            px = round(p(1));
+            py = round(p(2));
+            pz = round(p(3));
+            
+            l1 = self.dh_table(1, 2);
+            l2 = self.dh_table(2, 3);
+            l3 = self.dh_table(3, 3);
+            
+            s = pz - l1;
+            m = sqrt(px^2 + py^2);
+            r = sqrt(m^2 + s^2);
+            c = (l2^2 + r^2 - l3^2) / (2 * l2 * r);
+            d = sqrt(1 - c^2);
+            e = (l3^2 + l2^2 - r^2) / (2 * l3 * l2);
+            f = sqrt(1 - e^2);
+            alpha1 = atan2d(s, m);
+            alpha2 = atan2d(d, c);
+            alpha3 = atan2d(f, e);
+            
+            % calculating theta
+            q = zeros(1, 3);
+            q(1) = atan2d(py, px);
+            q(2) = 90 - (alpha1 + alpha2);
+            q(3) = 90 - alpha3;
+            
+        end
+        
      
     %% Graphing Functions
         % Live Stick Plot Function

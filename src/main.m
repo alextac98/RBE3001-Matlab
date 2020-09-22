@@ -6,6 +6,7 @@ clc;
 clear;
 clear java;
 clear classes;
+format short
 
 %% Flags
 DEBUG = false;
@@ -38,13 +39,23 @@ robot.STICKMODEL = STICKMODEL;
 
 %% Main Control
 try
+    
     traj = [0, 0, - 90;
             40, 40, 40;
-            0, 10, 0];
-            %0, 0, 0];
-    robot.cmd_joint_traj(traj);
+            0, 10, 0;
+            0, 0, 0];
         
-    pause(1);
+     for i = 1:size(traj,1)
+         q = traj(i, :);
+         p = robot.fwkin(q);
+         p(1:3, 4)
+         disp(robot.ikin(p(1:3, 4)));
+     end
+        
+        
+     % robot.cmd_joint_traj(traj);
+        
+    % pause(1);
     
 %     robot.cmd_gripper(false);
         
