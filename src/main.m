@@ -44,23 +44,8 @@ try
     traj = [100, 0, 30;
             100, 0, 11];       
      
-    robot.cmd_gripper(true);
-
-    robot.cmd_task_traj(traj);
+    robot.cmd_pick([100, 25, 11]);
     
-    pause(1);
-    
-    robot.cmd_gripper(false);
-    
-%     robot.cmd_home();
-     
-    % robot.get_task_pos()
-        
-    % pause(1);
-    
-%     robot.cmd_gripper(false);
-        
-    % robot.get_pos()
 catch exception
     getReport(exception)
     disp('Exited on error, clean shutdown');

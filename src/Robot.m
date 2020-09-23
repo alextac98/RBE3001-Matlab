@@ -52,7 +52,30 @@ classdef Robot
         
     %% Movement Commands
         
-        
+        % Command Pick from surface
+        % [pos] - task space pos where to pick up
+        function cmd_pick(self, pos)
+            % Open gripper
+            self.cmd_gripper(true);
+            % Create trajectory
+            pos(2) = pos(2) - 5;
+            prepick_pos = pos;
+            prepick_pos(3) = pos(3) + 30;
+            traj = [prepick_pos; pos];
+            % Move to pick up
+            self.cmd_task_traj(traj);
+            pause(1);
+            % Close gripper
+            self.cmd_gripper(false);
+            % Move home
+            self.cmd_home();
+        end
+        % Command Place
+        % [pos] - task space pos where to drop off
+        % Assumes already picked up an item
+        function cmd_place(self, pos)
+            
+        end
     
         % Command Gripper
         function cmd_gripper(self, open)
