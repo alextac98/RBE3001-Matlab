@@ -10,7 +10,7 @@ format short
 
 %% Flags
 DEBUG = false;
-STICKMODEL = true;
+STICKMODEL = false;
 
 %% Setup
 vid = hex2dec('16c0');
@@ -39,21 +39,22 @@ robot.STICKMODEL = STICKMODEL;
 
 %% Main Control
 try
+    robot.cmd_home();
     
-    traj = [0, 0, - 90;
-            40, 40, 40;
-            0, 10, 0;
-            0, 0, 0];
-        
-     for i = 1:size(traj,1)
-         q = traj(i, :);
-         p = robot.fwkin(q);
-         p(1:3, 4)
-         disp(robot.ikin(p(1:3, 4)));
-     end
-        
-        
-     % robot.cmd_joint_traj(traj);
+    traj = [100, 0, 30;
+            100, 0, 11];       
+     
+    robot.cmd_gripper(true);
+
+    robot.cmd_task_traj(traj);
+    
+    pause(1);
+    
+    robot.cmd_gripper(false);
+    
+%     robot.cmd_home();
+     
+    % robot.get_task_pos()
         
     % pause(1);
     

@@ -29,6 +29,9 @@ classdef Robot
             -pi/2,   0,  100,      0;
              pi/2,   0,  100,      0]
         
+        % Robot Default Positions (in task space)
+        home_pos = [0, 118.3594,  33.2813];
+         
     end
     methods
     %% General Commands
@@ -48,6 +51,9 @@ classdef Robot
         end
         
     %% Movement Commands
+        
+        
+    
         % Command Gripper
         function cmd_gripper(self, open)
             packet = javaArray('java.lang.Byte', 1);
@@ -93,6 +99,19 @@ classdef Robot
                 end
             end
         end
+        % Command Task-Space Trajectory
+        function cmd_task_traj(self, traj)
+            joint_traj = traj;
+            
+            for i = 1:size(traj, 1)
+                joint_traj(i, :) = self.ikin(traj(i, :));
+            end
+            self.cmd_joint_traj(joint_traj);
+        end
+        
+        function cmd_home(self)
+           self.cmd_joint_traj([0, 0, 0]); 
+        end
         
     %% Read Values Commands
         % Read current joint positions + position setpoints
@@ -114,6 +133,13 @@ classdef Robot
             if self.DEBUG
                 disp(pos);
             end
+        end
+        
+        % Read current joint positions and return task position of end
+        % effector
+        function pos = get_task_pos(self)
+           joint_pos = self.get_pos();
+           pos = self.ikin(joint_pos(:, 1));
         end
         
         % Read current joint velocity + velocity setpoint
