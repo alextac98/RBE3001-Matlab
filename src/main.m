@@ -41,10 +41,11 @@ robot.STICKMODEL = STICKMODEL;
 try
     robot.cmd_home();
     
-    traj = [100, 0, 30;
-            100, 0, 11];       
+    pick = [100, 25, 11];
+    place = [150, -40, 11];
      
-    robot.cmd_pick([100, 25, 11]);
+    robot.cmd_pick(pick);
+    robot.cmd_place(place);
     
 catch exception
     getReport(exception)

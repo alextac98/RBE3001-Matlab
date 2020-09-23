@@ -74,7 +74,20 @@ classdef Robot
         % [pos] - task space pos where to drop off
         % Assumes already picked up an item
         function cmd_place(self, pos)
-            
+            % Create Trajectory
+            int_pos = pos;
+            int_pos(3) = pos(3) + 30;
+            traj = [int_pos; pos];
+            % Move to place
+            self.cmd_task_traj(traj);
+            % Open gripper
+            self.cmd_gripper(true);
+            % Move to intermediate place
+            self.cmd_task_traj(int_pos);
+            % Move home
+            self.cmd_home();
+            % Close gripper
+            self.cmd_gripper(false);
         end
     
         % Command Gripper
