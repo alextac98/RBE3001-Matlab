@@ -11,6 +11,7 @@ format short
 %% Flags
 DEBUG = false;
 STICKMODEL = false;
+DEBUG_CAM = false;
 
 %% Setup
 vid = hex2dec('16c0');
@@ -37,6 +38,9 @@ robot = Robot(myHIDSimplePacketComs);
 robot.DEBUG = DEBUG;
 robot.STICKMODEL = STICKMODEL;
 
+cam = Camera();
+cam.DEBUG = DEBUG_CAM;
+
 %% Place Poses per color
 purple_place = [150, -50, 11];
 green_place = [150, 50, 11];
@@ -45,6 +49,9 @@ yellow_place = [75, 125, 11];
 
 %% Main Control
 try
+    if cam.params == 0
+        error("No camera parameters found!");
+    end
     robot.cmd_home();
     
     pick = [100, 25, 11];
@@ -54,7 +61,8 @@ try
     robot.cmd_place(yellow_place);
     
 catch exception
-    getReport(exception)
+    fprintf('\n ERROR!!! \n \n');
+    disp(getReport(exception));
     disp('Exited on error, clean shutdown');
 end
 
