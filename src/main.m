@@ -37,6 +37,12 @@ robot = Robot(myHIDSimplePacketComs);
 robot.DEBUG = DEBUG;
 robot.STICKMODEL = STICKMODEL;
 
+%% Place Poses per color
+purple_place = [150, -50, 11];
+green_place = [150, 50, 11];
+pink_place = [75, -125, 11];
+yellow_place = [75, 125, 11];
+
 %% Main Control
 try
     robot.cmd_home();
@@ -45,7 +51,7 @@ try
     place = [150, -40, 11];
      
     robot.cmd_pick(pick);
-    robot.cmd_place(place);
+    robot.cmd_place(yellow_place);
     
 catch exception
     getReport(exception)

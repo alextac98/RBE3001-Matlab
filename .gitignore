@@ -1,1 +1,4 @@
 src/*~
+calibrationSession.mat
+camera_calibration/*
+src/camcalib.m
