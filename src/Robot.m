@@ -108,6 +108,7 @@ classdef Robot
                 getReport(exception)
                 disp('Command error, reading too fast');
             end
+            pause(0.3);
         end
         % Command Joint-Space Trajectory
         function cmd_joint_traj(self, traj)
