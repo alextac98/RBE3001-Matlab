@@ -5,7 +5,6 @@
 clc;
 clear;
 clear java;
-clear classes;
 format short
 
 %% Flags
@@ -47,18 +46,56 @@ green_place = [150, 50, 11];
 pink_place = [75, -125, 11];
 yellow_place = [75, 125, 11];
 
-%% Main Control
+%% Set colors rgb values
+cam.ball_colors('pink')     = [115,  26,  62];
+cam.ball_colors('yellow')   = [183, 137,  36];
+cam.ball_colors('green')    = [ 56,  93,  14];
+cam.ball_colors('purple')   = [ 26,  23,  81];
+
+%% Main Loop
 try
+    % Set up camera
     if cam.params == 0
         error("No camera parameters found!");
     end
-    robot.cmd_home();
+    cam.cam_pose = cam.getCameraPose();
+    
+    isShutdown = false;
+    
+    i = 1;
+    color_matrix = zeros(20, 3);
+    pause;
+    while i < 100
+        % Get user input for next step
+        %in = input("Type `e` to close, else will continue", 's');
+        %if strcmp(in, "e")
+         %   isShutdown = true;
+         %   break;
+        %end
+        
+        % Detect ball positions
+        [pose, color] = cam.detectBestBall();
+        
+        color_matrix(i, :) = color;
+        i = i + 1;
+    end
+    
+    mean = [mean(color_matrix(:, 1)), ...
+            mean(color_matrix(:, 2)), ...
+            mean(color_matrix(:, 3))]
+        
+    std =  [std(color_matrix(:, 1)), ...
+            std(color_matrix(:, 2)), ...
+            std(color_matrix(:, 3))]
+    
+    
+    %robot.cmd_home();
     
     pick = [100, 25, 11];
     place = [150, -40, 11];
      
-    robot.cmd_pick(pick);
-    robot.cmd_place(yellow_place);
+    %robot.cmd_pick(pick);
+    %robot.cmd_place(yellow_place);
     
 catch exception
     fprintf('\n ERROR!!! \n \n');
@@ -68,3 +105,4 @@ end
 
 %% Shutdown Procedure
 robot.shutdown()
+cam.shutdown()
