@@ -47,10 +47,10 @@ pink_place = [75, -125, 11];
 yellow_place = [75, 125, 11];
 
 %% Set colors rgb values
-cam.ball_colors('pink')     = [115,  26,  62];
-cam.ball_colors('yellow')   = [183, 137,  36];
-cam.ball_colors('green')    = [ 56,  93,  14];
-cam.ball_colors('purple')   = [ 26,  23,  81];
+% cam.ball_colors('pink')     = [115,  26,  62];
+% cam.ball_colors('yellow')   = [183, 137,  36];
+% cam.ball_colors('green')    = [ 56,  93,  14];
+% cam.ball_colors('purple')   = [ 26,  23,  81];
 
 %% Main Loop
 try
@@ -64,38 +64,41 @@ try
     
     i = 1;
     color_matrix = zeros(20, 3);
-    pause;
-    while i < 100
+    while ~isShutdown
         % Get user input for next step
-        %in = input("Type `e` to close, else will continue", 's');
-        %if strcmp(in, "e")
-         %   isShutdown = true;
-         %   break;
-        %end
+        in = input("Type `exit` to close, else will continue \n", 's');
+        if strcmp(in, "exit")
+            isShutdown = true;
+            break;
+        end
         
-        % Detect ball positions
+        robot.cmd_home();
+        
+        % Detect ball positions + color
         [pose, color] = cam.detectBestBall();
         
-        color_matrix(i, :) = color;
-        i = i + 1;
-    end
-    
-    mean = [mean(color_matrix(:, 1)), ...
-            mean(color_matrix(:, 2)), ...
-            mean(color_matrix(:, 3))]
-        
-    std =  [std(color_matrix(:, 1)), ...
-            std(color_matrix(:, 2)), ...
-            std(color_matrix(:, 3))]
-    
-    
-    %robot.cmd_home();
-    
-    pick = [100, 25, 11];
-    place = [150, -40, 11];
+        if pose == 0
+            disp("No more balls found in the task space");
+            continue;
+        end
      
-    %robot.cmd_pick(pick);
-    %robot.cmd_place(yellow_place);
+        robot.cmd_pick(pose(1:3, 4)');
+        
+        
+        switch color
+            case "yellow"
+                robot.cmd_place(yellow_place);
+            case "pink"
+                robot.cmd_place(pink_place);
+            case "purple"
+                robot.cmd_place(purple_place);
+            case "green"
+                robot.cmd_place(green_place);
+        end
+        
+    end
+
+    
     
 catch exception
     fprintf('\n ERROR!!! \n \n');

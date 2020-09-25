@@ -19,7 +19,16 @@ classdef Camera
         min_blob_size = 3000;
         
         % Colors (as measured by Alex Tacescu)
-        ball_colors = containers.Map;
+        ball_colors =         ...
+            [115,  26,  62; ...   % pink
+             183, 137,  36; ...   % yellow
+              56,  93,  14; ...   % green
+              26,  23,  81];      % purple
+         ball_color_keys = ...
+             ["pink",   ...
+              "yellow", ...
+              "green",  ...
+              "purple"];
         
         % Properties
         params;
@@ -61,9 +70,23 @@ classdef Camera
             
             [areas, centroids, boxes] = step(blobAnalysis, imgBalls);
             
-            [~, max_i] = max(areas);
+            max_area = 0;
+            pose = 0;
+            for i = 1:size(areas)
+                tmp_pose = self.cam2base(centroids(i, :) + new_origin);
+                if abs(tmp_pose(2, 4)) > 125 || tmp_pose(1, 4) > 125
+                    continue;
+                end
+                if areas(i) > max_area
+                    best_centroid = centroids(i, :);
+                    pose = tmp_pose;
+                end
+            end
             
-            best_centroid = centroids(max_i, :);            
+            if pose == 0
+                color = "";
+                return;
+            end
 
             % If in Debug mode or debugging object detection, draw graph
             if self.DEBUG || self.DEBUG_BALLDETECTION
@@ -78,11 +101,20 @@ classdef Camera
             end
             
             % Get pose of ball in base frame
-            pose = self.cam2base(best_centroid + new_origin);
+%             pose = self.cam2base(best_centroid + new_origin);
             
             % Get color of the ball
             color_rgb = impixel(raw_img, best_centroid(1), best_centroid(2));
             
+            best_score = 10000;
+            
+            for i = 1:size(self.ball_color_keys, 2)
+                score = mean(abs(color_rgb - self.ball_colors(i, :)));
+                if score < best_score
+                    color = self.ball_color_keys(i);
+                    best_score = score;
+                end
+            end
             
         end
         
