@@ -34,6 +34,7 @@ classdef Camera
         params;
         cam;
         cam_pose;
+        ref_img;
     end
     
     methods
@@ -50,8 +51,12 @@ classdef Camera
             % Get an undistorted image
             [raw_img, new_origin] = self.getImg();
             
+            img = abs(raw_img - self.ref_img);
+            
+            figure;imshow(img);
+            
             % Segment image
-            imgHSV = rgb2hsv(raw_img);
+            imgHSV = rgb2hsv(img);
             saturation = imgHSV(:, :, 2);
             t = graythresh(saturation);
             imgBalls = (saturation > t);
@@ -74,7 +79,7 @@ classdef Camera
             pose = 0;
             for i = 1:size(areas)
                 tmp_pose = self.cam2base(centroids(i, :) + new_origin);
-                if abs(tmp_pose(2, 4)) > 125 || tmp_pose(1, 4) > 125
+                if abs(tmp_pose(2, 4)) > 110 || tmp_pose(1, 4) > 125 || tmp_pose(1, 4) < 25
                     continue;
                 end
                 if areas(i) > max_area
@@ -104,7 +109,7 @@ classdef Camera
 %             pose = self.cam2base(best_centroid + new_origin);
             
             % Get color of the ball
-            color_rgb = impixel(raw_img, best_centroid(1), best_centroid(2));
+            color_rgb = impixel(img, best_centroid(1), best_centroid(2));
             
             best_score = 10000;
             
@@ -138,7 +143,7 @@ classdef Camera
         end
         
         % Get transformation from camera to checkerboard frame
-        function pose = getCameraPose(self)
+        function [pose, img] = getCameraPose(self)
             % 1. Capture image from camera
             raw_img =  snapshot(self.cam);
             % 2. Undistort Image based on params

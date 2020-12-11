@@ -58,6 +58,7 @@ classdef Robot
             % Open gripper
             self.cmd_gripper(true);
             % Create trajectory
+            pos(1) = pos(1);
             pos(2) = pos(2) - 5;
             prepick_pos = pos;
             prepick_pos(3) = pos(3) + 30;

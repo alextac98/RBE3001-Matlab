@@ -56,9 +56,10 @@ yellow_place = [75, 125, 11];
 try
     % Set up camera
     if cam.params == 0
+        
         error("No camera parameters found!");
     end
-    cam.cam_pose = cam.getCameraPose();
+    [cam.cam_pose, cam.ref_img] = cam.getCameraPose();
     
     isShutdown = false;
     
@@ -81,8 +82,15 @@ try
             disp("No more balls found in the task space");
             continue;
         end
-     
+        
+        %pose(1, 4) = pose(1, 4) + 30;
+        
+        disp(color);
+        
+        disp(pose(1:3, 4)');
+        
         robot.cmd_pick(pose(1:3, 4)');
+        
         
         
         switch color
